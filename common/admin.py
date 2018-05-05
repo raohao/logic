@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
+from django.contrib.auth import (get_user_model)
 from django.contrib.auth.admin import UserAdmin
-from common.forms import (UserCreationForm, UserChangeForm)
-from common.models import (AdminUser, HeadUser, BranchUser)
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth import ( get_user_model, password_validation)
-
+from userauth.forms import (UserCreationForm, UserChangeForm)
+from userauth.models import (AdminUser, HeadUser, BranchUser)
 
 UserModel = get_user_model()
 
@@ -48,11 +48,13 @@ class CustomUser(UserAdmin):
     class  Meta:
         abstract = True
 
+
 @admin.register(AdminUser)
 class MyUserAdmin(CustomUser):
     class Meta:
         verbose_name = '管理员用户'
         verbose_name_plural = verbose_name
+
 
 @admin.register(HeadUser)
 class MyUserHead(CustomUser):
@@ -60,13 +62,14 @@ class MyUserHead(CustomUser):
         verbose_name = '总行用户'
         verbose_name_plural = verbose_name
 
+
 @admin.register(BranchUser)
 class MyUserBranch(CustomUser):
     class Meta:
         verbose_name = '分行用户'
         verbose_name_plural = verbose_name
 
-# ... and, since we"re not using Django"s built-in permissions,
 
+# ... and, since we"re not using Django"s built-in permissions,
 admin.site.site_header = "威胁流程管理平台管理员页面"
 admin.site.site_title = "LOGIC"

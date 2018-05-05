@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from django.db import models
-from common.models import (HeadUser, Receipt)
+from userauth.models import HeadUser
+from common.models import Receipt
 
 
 class AlarmCheck(Receipt):
@@ -14,7 +16,7 @@ class AlarmCheck(Receipt):
     start_from = models.CharField(max_length=255, null=True, blank=True)
     sustain = models.CharField(max_length=255, null=True, blank=True)
     app = models.CharField(max_length=255, null=True, blank=True)
-    plan = models.TextField(max_length=5000, null=True, blank=True)
+    r_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'alarmCheck'
@@ -39,9 +41,8 @@ class EventCheck(Receipt):
     def __str__(self):
         return self.id
 
+
 # 考核评价表
-
-
 class Evaluation(models.Model):
     id = models.CharField(max_length=255, primary_key=True)
     time = models.DateTimeField(auto_now_add=True, null=True, blank=True)

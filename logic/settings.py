@@ -38,10 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'common',
-    'extend',
+    'userauth',
     'guard',
     'instrument',
     'threatdata',
+    'service',
+    'log',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -142,16 +145,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 SESSION_COOKIE_AGE = 60*30
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
-AUTH_USER_MODEL = 'common.AdminUser'
+AUTH_USER_MODEL = 'userauth.AdminUser'
 
 AUTHENTICATION_BACKENDS = (
-    'common.headbackends.ModelBackend',
-    'common.branchbackends.ModelBackend',
-    'common.adminbackends.ModelBackend',
+    'userauth.adminbackends.ModelBackend',
+    'userauth.headbackends.ModelBackend',
+    'userauth.branchbackends.ModelBackend',
+
 )

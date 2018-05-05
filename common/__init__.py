@@ -10,4 +10,4 @@ def get_current_app_name(_file):
 
 class CommonConfig(AppConfig):
     name = get_current_app_name(__file__)
-    verbose_name = "核心功能"
+    verbose_name = "基本功能"

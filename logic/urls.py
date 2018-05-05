@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """logic URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -14,8 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from userauth import urls as user_urls
+from guard import urls as guard_urls
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('userauth/', include(user_urls)),
+    path('guard/', include(guard_urls)),
 ]
