@@ -1,4 +1,4 @@
-# LIT (Logic Information Techinology System)
+# Logic Information Techinology System (LIT)
 
 ### 用途说明
 

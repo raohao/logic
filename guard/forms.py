@@ -1,7 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from django import forms
-from .models import AlarmCheck
+from .models import (AlarmCheck, EventCheck)
+
+
+class AlarmCheckForm(forms.ModelForm):
+    class Meta:
+        model = AlarmCheck
+        fields = '__all__'
+
+
+class EventCheckForm(forms.ModelForm):
+    class Meta:
+        model = EventCheck
+        fields = '__all__'
 
 
 class CreatAlarmCheckForm(forms.ModelForm):

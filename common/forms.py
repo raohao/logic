@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from django import forms
 
-class ContactForm(forms.Form):
-    name = forms.CharField()
-    message = forms.CharField(widget=forms.Textarea)
+class EmailPostForm(forms.Form):
+    name = forms.CharField(max_length=50)
+    email = forms.EmailField()
+    to = forms.EmailField()
+    message = forms.CharField(required=False, widget=forms.Textarea)
 
     def send_email(self):
         pass

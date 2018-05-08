@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from common.models import LogEntry
-from userauth.models import (HeadUser, BranchUser)
+from account.models import (HeadUser, BranchUser)
 from django.utils.translation import gettext_lazy as _
 
 # Create your models here.

@@ -6,5 +6,5 @@ app_name = 'guard'
 
 urlpatterns = [
     path('', views.home, name='guard'),
-    path('alarm', views.test.urls, name='guard'),
+    path('alarm', views.alarm.urls, name='alarm'),
 ]

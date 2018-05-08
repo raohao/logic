@@ -27,17 +27,7 @@ from django.utils.translation import gettext, gettext_lazy as _
 # 2. ManytoManyField不能为空；
 # 3.单张表多次引用其他表作为外键需要设置related_name；
 
-INSTITUTION = (
-    ('Head', '总行'),
-    ('Branch', '分行'),
-)
-
-ADDITION = 1
-CHANGE = 2
-DELETION = 3
-
-
-def update_last_login(sender, user, **kwargs):
+def update_last_login(user,):
     """
     A signal receiver which updates the last_login date for
     the user logging in.
@@ -46,12 +36,15 @@ def update_last_login(sender, user, **kwargs):
     user.save(update_fields=['last_login'])
 
 
+# 创建用户管理器
 class UserManager(BaseUserManager):
+
     use_in_migrations = True
 
     def _create_user(self, user_id, password, **extra_fields):
         """
         Create and save a user with the given username, email, and password.
+
         """
         if not user_id:
             raise ValueError('请设置用户名！')
@@ -79,8 +72,14 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+
+    INSTITUTION = (
+        ('Head', '总行'),
+        ('Branch', '分行'),
+    )
+
     username_validator = UsernameValidator()
-    user_id =  models.CharField(
+    user_id = models.CharField(
         primary_key=True,
         max_length=20,
         help_text=_('请输入您的工号！'),
@@ -90,18 +89,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         },
         verbose_name='用户',
     )
-    name = models.CharField(max_length=20, verbose_name='姓名', default='')
-    photo = models.ImageField()
-    institution = models.CharField(max_length=64, verbose_name='机构', choices=INSTITUTION, default='1')
-    organization = models.CharField(max_length=254, verbose_name='单位', db_index=True, default='')
-    tel = models.CharField(max_length=254, verbose_name='电话', default='')
-    email = models.EmailField(max_length=254, verbose_name='邮箱', default='')
-    start_from = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
-    end_to = models.DateTimeField(default=(now().date() + timedelta(days=365)), verbose_name='有效期限')
+    institution = models.CharField('机构', max_length=64, choices=INSTITUTION, default='1')
+    start_from = models.DateTimeField('创建时间', auto_now_add=True)
+    end_to = models.DateTimeField('有效期限', default=(now().date() + timedelta(days=365)))
+    power_level = models.CharField('权限', max_length=64, default='')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
-    token = models.IntegerField(default=0)
 
     objects = UserManager()
 
@@ -132,7 +126,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return str(self.is_admin)
 
     def get_full_name(self):
-        return str(self.name)
+        return str(self.institution + self.user_id)
 
     def get_short_name(self):
         return str(self.user_id)
@@ -142,24 +136,86 @@ class User(AbstractBaseUser, PermissionsMixin):
         abstract = True
 
 
-class Receipt(models.Model):
-    check_id = models.CharField(max_length=254, primary_key=True)
-    status = models.CharField(max_length=20, null=True, blank=True)
-    s_time = models.DateTimeField(auto_now_add=True, db_index=True)
-    r_time = models.DateTimeField(null=True, blank=True)
-    c_time = models.DateTimeField(null=True, blank=True)
-    rank = models.CharField(max_length=10, null=True, blank=True)
-    describe = models.TextField(max_length=3000, null=True, blank=True)
-    influence = models.BooleanField(default=False)
-    reason = models.TextField(max_length=3000, null=True, blank=True)
-    solution = models.IntegerField(null=True, blank=True)
-    plan = models.TextField(max_length=5000, null=True, blank=True)
+class Profile(models.Model):
+    user_id = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='用户')
+    token = models.IntegerField('令牌', default=0)
+    name = models.CharField('姓名', max_length=20, default='')
+    photo = models.ImageField('头像')
+    organization = models.CharField('单位', max_length=254, db_index=True, default='')
+    tel = models.CharField('电话', max_length=254, default='')
+    email = models.EmailField('邮箱', max_length=254, default='')
 
     class Meta:
         abstract = True
 
+
+RECEIPT_STATUS = (
+    ('new', '新建'),
+    ('process', '处理中'),
+    ('done', '完成'),
+    ('close', '关闭'),
+)
+
+RECEIPT_RANK = (
+    ('1', '一级安全事件'),
+    ('2', '二级安全事件'),
+    ('3', '三级安全事件'),
+)
+
+
+class Receipt(models.Model):
+    check_id = models.CharField('单号', max_length=254, primary_key=True)
+    title = models.CharField('标题', max_length=50, blank=True, default='')
+    status = models.CharField('状态', max_length=10, choices=RECEIPT_STATUS, default='new')
+    s_time = models.DateTimeField('发送时间', auto_now_add=True, db_index=True)
+    r_time = models.DateTimeField('接收时间', null=True, blank=True)
+    u_time = models.DateTimeField('更新时间', auto_now=True, null=True, blank=True)
+    c_time = models.DateTimeField('关闭时间', null=True, blank=True)
+    rank = models.CharField('等级', max_length=10, choices=RECEIPT_RANK, default='3')
+    describe = models.TextField('描述', max_length=3000, null=True, blank=True)
+    influence = models.BooleanField('影响', default=False)
+    reason = models.TextField('原因', max_length=3000, null=True, blank=True)
+    plan = models.TextField('解决方案', max_length=5000, null=True, blank=True)
+
+    class Meta:
+        ordering = ('s_time', )
+        abstract = True
+
     def __str__(self):
-        return self.id
+        return self.check_id
+
+
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        return super(PublishedManager, self).get_queryset().filter(status='published')
+
+
+ARTICLE_STATUS = (
+    ('draft', '草稿'),
+    ('published', '发布'),
+)
+
+
+class Article(models.Model):
+    article_id = models.CharField('文章编号', primary_key=True, max_length=50)
+    title = models.CharField('标题', max_length=250, default='', null=True, blank=True)
+    slug = models.SlugField('简称', max_length=250, unique_for_date='publish', null=True, blank=True)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='Article', on_delete=models.SET_NULL,
+                               null=True, blank=True, verbose_name='作者')
+    body = models.TextField('正文', null=True, blank=True)
+    s_time = models.DateTimeField('创建时间', auto_now_add=True)
+    u_time = models.DateTimeField('修改时间', auto_now=True)
+    p_time = models.DateTimeField('发布时间', default=now)
+    status = models.CharField('状态', max_length=10, choices=ARTICLE_STATUS, default='draft')
+
+    object = PublishedManager()
+
+    class Meta:
+        ordering = ('-publish',)
+        abstract = True
+
+    def __str__(self):
+        return self.title
 
 
 class LogEntryManager(models.Manager):
@@ -176,6 +232,11 @@ class LogEntryManager(models.Manager):
             action_flag=action_flag,
             change_message=change_message,
         )
+
+
+ADDITION = 1
+CHANGE = 2
+DELETION = 3
 
 
 class LogEntry(models.Model):

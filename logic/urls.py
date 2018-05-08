@@ -16,12 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from userauth import urls as user_urls
+from account import urls as account_urls
 from guard import urls as guard_urls
+from common import urls as common_urls
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('userauth/', include(user_urls)),
+    path('account/', include(account_urls)),
     path('guard/', include(guard_urls)),
+    path('common/', include(common_urls))
 ]

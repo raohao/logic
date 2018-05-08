@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render
-from django.views import View
-from django.views.generic.edit import FormView
-from common.forms import ContactForm
+from django.shortcuts import get_object_or_404
+from common.forms import EmailPostForm
 
 
 # Create your views here.
-class CommonView(View):
-    pass
+def home(request):
+    return render(request, 'index.html')
 
 
-class ContactView(FormView):
-    template_name = 'icons.html'
-    form_class = ContactForm
-    success_url = '/index/'
+def send_email(request, post_id):
+    post = get_object_or_404(request.POST, id=post_id, status='new')
 
-    def form_valid(self, form):
-        form.send_email()
-        return super().form_valid(form)
+    if request.method == 'POST':
+        form = EmailPostForm(request.POST)

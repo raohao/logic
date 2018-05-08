@@ -37,12 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'common',
-    'userauth',
+    'account',
     'guard',
-    'instrument',
-    'threatdata',
+    'centre',
+    'assistance',
+    'data',
     'service',
+    'instrument',
     'log',
     'api',
 ]
@@ -152,11 +155,14 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
-AUTH_USER_MODEL = 'userauth.AdminUser'
+AUTH_USER_MODEL = 'account.AdminUser'
 
 AUTHENTICATION_BACKENDS = (
-    'userauth.adminbackends.ModelBackend',
-    'userauth.headbackends.ModelBackend',
-    'userauth.branchbackends.ModelBackend',
-
+    'account.adminbackends.ModelBackend',
+    'account.headbackends.ModelBackend',
+    'account.branchbackends.ModelBackend',
 )
+
+REST_FRAMWORK = {'DEFAULT_PERMISSION_CLASSES': [
+    'rest_framework.permission.DjangoModelPermissionOrAnoReadOn'
+]}
