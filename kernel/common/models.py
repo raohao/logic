@@ -18,7 +18,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.text import get_text_list
 from django.utils.translation import gettext, gettext_lazy as _
-
+from taggit.managers import TaggableManager
 
 # Create your models here.
 # 数据库除主键外大多数可空
@@ -26,6 +26,7 @@ from django.utils.translation import gettext, gettext_lazy as _
 # 1.数据库无法迁移：删除所有migration文件，清除数据库，重新生成文件；
 # 2. ManytoManyField不能为空；
 # 3.单张表多次引用其他表作为外键需要设置related_name；
+
 
 def update_last_login(user,):
     """
@@ -197,17 +198,17 @@ ARTICLE_STATUS = (
 
 
 class Article(models.Model):
-    article_id = models.CharField('文章编号', primary_key=True, max_length=50)
+    article_id = models.CharField('文章编号', max_length=50, primary_key=True)
     title = models.CharField('标题', max_length=250, default='', null=True, blank=True)
     slug = models.SlugField('简称', max_length=250, unique_for_date='publish', null=True, blank=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='Article', on_delete=models.SET_NULL,
-                               null=True, blank=True, verbose_name='作者')
+    author = models.CharField('作者', max_length=50, null=True, blank=True)
     body = models.TextField('正文', null=True, blank=True)
     s_time = models.DateTimeField('创建时间', auto_now_add=True)
     u_time = models.DateTimeField('修改时间', auto_now=True)
     p_time = models.DateTimeField('发布时间', default=now)
     status = models.CharField('状态', max_length=10, choices=ARTICLE_STATUS, default='draft')
 
+    tags = TaggableManager()
     object = PublishedManager()
 
     class Meta:
@@ -216,6 +217,22 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Comments(models.Model):
+    article_id = models.CharField('文章编号', max_length=50, null=True, blank=True)
+    user_id = models.CharField('评论用户', max_length=15, null=True, blank=True)
+    body = models.TextField('评论正文', max_length=500, default='', null=True, blank=True)
+    s_time = models.DateTimeField('评论时间', auto_now_add=True)
+    u_time = models.DateTimeField('更新时间', auto_now=True)
+    active = models.BooleanField('用户状态', default=True)
+
+    class Meta:
+        ordering = ('s_time',)
+        abstract = True
+
+    def __str__(self):
+        return 'Comment by {} on {}'.format(self.user_id, self.article_id)
 
 
 class LogEntryManager(models.Manager):

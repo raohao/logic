@@ -45,9 +45,6 @@ class CustomUser(UserAdmin):
     ordering = ("institution",)
     data_hierarch = "end_to"
 
-    class Meta:
-        abstract = True
-
 
 @admin.register(AdminUser)
 class MyUserAdmin(CustomUser):
