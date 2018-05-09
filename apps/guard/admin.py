@@ -5,7 +5,7 @@ from guard.models import (AlarmCheck, EventCheck, Evaluation, GuardPlan)
 
 @admin.register(AlarmCheck)
 class AlarmCheckAdmin(admin.ModelAdmin):
-    raw_id_fields = ('r_id',)
+    raw_id_fields = ('receive_user_id',)
     list_per_page = 15
 
     class Meta:
@@ -15,7 +15,7 @@ class AlarmCheckAdmin(admin.ModelAdmin):
 
 @admin.register(EventCheck)
 class EventCheckAdmin(admin.ModelAdmin):
-    raw_id_fields = ('a_id', 's_id', 'r_id')
+    raw_id_fields = ('alarm_check_id', 'create_user_id', 'receive_user_id')
     list_per_page = 5
 
     class Meta:
@@ -34,7 +34,7 @@ class EvaluationAdmin(admin.ModelAdmin):
 
 @admin.register(GuardPlan)
 class GuardPlanAdmin(admin.ModelAdmin):
-    raw_id_fields = ('product_line', 'second_line', 'third_line')
+    raw_id_fields = ('product_user_id', 'second_user_id', 'third_user_id')
     list_per_page = 10
 
     class Meta:

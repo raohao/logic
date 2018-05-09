@@ -92,7 +92,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     institution = models.CharField('机构', max_length=64, choices=INSTITUTION, default='1')
     start_from = models.DateTimeField('创建时间', auto_now_add=True)
-    end_to = models.DateTimeField('有效期限', default=(now().date() + timedelta(days=365)))
+    end_to = models.DateTimeField('有效期限', default=(now().date() + timedelta(days=1095)))
     power_level = models.CharField('权限', max_length=64, default='')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -138,7 +138,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Profile(models.Model):
-    user_id = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='用户')
+    user_id = models.CharField('用户', max_length=20, default='')
     token = models.IntegerField('令牌', default=0)
     name = models.CharField('姓名', max_length=20, default='')
     photo = models.ImageField('头像')
@@ -167,11 +167,12 @@ RECEIPT_RANK = (
 class Receipt(models.Model):
     check_id = models.CharField('单号', max_length=254, primary_key=True)
     title = models.CharField('标题', max_length=50, blank=True, default='')
+    receive_user_id = models.CharField('受理人', max_length=20, null=True, blank=True)
     status = models.CharField('状态', max_length=10, choices=RECEIPT_STATUS, default='new')
-    s_time = models.DateTimeField('发送时间', auto_now_add=True, db_index=True)
-    r_time = models.DateTimeField('接收时间', null=True, blank=True)
-    u_time = models.DateTimeField('更新时间', auto_now=True, null=True, blank=True)
-    c_time = models.DateTimeField('关闭时间', null=True, blank=True)
+    create_time = models.DateTimeField('发送时间', auto_now_add=True, db_index=True)
+    receive_time = models.DateTimeField('接收时间', null=True, blank=True)
+    update_time = models.DateTimeField('更新时间', auto_now=True, null=True, blank=True)
+    close_time = models.DateTimeField('关闭时间', null=True, blank=True)
     rank = models.CharField('等级', max_length=10, choices=RECEIPT_RANK, default='3')
     describe = models.TextField('描述', max_length=3000, null=True, blank=True)
     influence = models.BooleanField('影响', default=False)
@@ -201,11 +202,11 @@ class Article(models.Model):
     article_id = models.CharField('文章编号', max_length=50, primary_key=True)
     title = models.CharField('标题', max_length=250, default='', null=True, blank=True)
     slug = models.SlugField('简称', max_length=250, unique_for_date='publish', null=True, blank=True)
-    author = models.CharField('作者', max_length=50, null=True, blank=True)
+    author_user_id = models.CharField('作者', max_length=50, null=True, blank=True)
     body = models.TextField('正文', null=True, blank=True)
-    s_time = models.DateTimeField('创建时间', auto_now_add=True)
-    u_time = models.DateTimeField('修改时间', auto_now=True)
-    p_time = models.DateTimeField('发布时间', default=now)
+    create_time = models.DateTimeField('创建时间', auto_now_add=True)
+    update_time = models.DateTimeField('修改时间', auto_now=True)
+    publish_time = models.DateTimeField('发布时间', default=now)
     status = models.CharField('状态', max_length=10, choices=ARTICLE_STATUS, default='draft')
 
     tags = TaggableManager()
@@ -220,11 +221,12 @@ class Article(models.Model):
 
 
 class Comments(models.Model):
+    comment_id = models.CharField('评论编号', max_length=20, primary_key=True, default='')
     article_id = models.CharField('文章编号', max_length=50, null=True, blank=True)
-    user_id = models.CharField('评论用户', max_length=15, null=True, blank=True)
+    comment_user_id = models.CharField('评论人', max_length=15, null=True, blank=True)
     body = models.TextField('评论正文', max_length=500, default='', null=True, blank=True)
-    s_time = models.DateTimeField('评论时间', auto_now_add=True)
-    u_time = models.DateTimeField('更新时间', auto_now=True)
+    create_time = models.DateTimeField('评论时间', auto_now_add=True)
+    update_time = models.DateTimeField('更新时间', auto_now=True)
     active = models.BooleanField('用户状态', default=True)
 
     class Meta:
@@ -232,7 +234,7 @@ class Comments(models.Model):
         abstract = True
 
     def __str__(self):
-        return 'Comment by {} on {}'.format(self.user_id, self.article_id)
+        return 'Comment by {} on {}'.format(self.comment_user_id, self.article_id)
 
 
 class LogEntryManager(models.Manager):

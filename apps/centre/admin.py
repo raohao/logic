@@ -6,21 +6,21 @@ from centre.models import (RiskClosure, UserComments)
 # Register your models here.
 @admin.register(RiskClosure)
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'author', 'rank', 'p_time', 'status')
-    list_filter = ('status', 'p_time', 'rank')
+    list_display = ('title', 'slug', 'author_user_id', 'rank', 'publish_time', 'status')
+    list_filter = ('status', 'publish_time', 'rank')
     search_fields = ('title', 'body')
     prepopulated_fields = {'slug': ('title',)}
-    raw_id_fields = ('author',)
-    date_hierarchy = 'p_time'
-    ordering = ['status', 'p_time']
+    raw_id_fields = ('author_user_id',)
+    date_hierarchy = 'publish_time'
+    ordering = ['status', 'publish_time']
     list_per_page = 15
 
 
 @admin.register(UserComments)
 class ArticleAdmin(admin.ModelAdmin):
-    list_display = ('article_id', 'user_id',)
-    raw_id_fields = ('user_id',)
-    date_hierarchy = 's_time'
-    ordering = ['s_time',]
+    list_display = ('article_id', 'comment_user_id',)
+    raw_id_fields = ('comment_user_id',)
+    date_hierarchy = 'create_time'
+    ordering = ['create_time',]
     list_per_page = 15
 

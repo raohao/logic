@@ -14,7 +14,7 @@ RISK_RANK = (
 
 # Create your models here.
 class RiskClosure(Article):
-    author = models.ForeignKey(HeadUser, related_name='author', on_delete=models.SET_NULL,
+    author_user_id = models.ForeignKey(HeadUser, related_name='risk_closure_author', on_delete=models.SET_NULL,
                                null=True, blank=True, verbose_name='作者')
     rank = models.CharField('风险等级', max_length=10, choices=RISK_RANK, default='2')
 
@@ -25,10 +25,10 @@ class RiskClosure(Article):
 
 
 class UserComments(Comments):
-    article_id = models.ForeignKey(RiskClosure, related_name='comment_article_id', on_delete=models.SET_NULL,
-                                   null=True, blank=True, verbose_name='文章编号')
-    user_id = models.ForeignKey(HeadUser, related_name='comment_user_id', on_delete=models.SET_NULL,
-                                null=True, blank=True, verbose_name='评论人员')
+    article_id = models.ForeignKey(RiskClosure, related_name='user_comment_article', on_delete=models.SET_NULL,
+                                   null=True, blank=True, verbose_name='文章编号', default='')
+    comment_user_id = models.ForeignKey(HeadUser, related_name='user_comment_user', on_delete=models.SET_NULL,
+                                        null=True, blank=True, verbose_name='评论人员', default='')
 
     class Meta:
         db_table = 'user_comments'

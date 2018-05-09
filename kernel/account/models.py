@@ -35,6 +35,7 @@ class AdminUser(User):
 
 
 class AdminUserProfile(Profile):
+    user_id = models.OneToOneField(AdminUser, on_delete=models.CASCADE, verbose_name='用户')
 
     class Meta:
         db_table = 'admin_user_profile'
@@ -63,8 +64,8 @@ class HeadUser(User):
 class HeadUserProfile(Profile):
     user_id = models.OneToOneField(HeadUser, on_delete=models.CASCADE, verbose_name='用户')
     dept = models.CharField('团队', max_length=255, default='')
-    re_user_id = models.CharField('remedy账号', max_length=64, default='')
-    re_password = models.CharField('remedy密码', max_length=64, default='')
+    remedy_user_id = models.CharField('remedy账号', max_length=64, default='')
+    remedy_password = models.CharField('remedy密码', max_length=64, default='')
 
     class Meta:
         db_table = 'head_user_profile'

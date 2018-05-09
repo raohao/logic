@@ -14,14 +14,15 @@ SOLUTION = (
 
 
 class AlarmCheck(Receipt):
-    q_id = models.CharField('Qradar单号', max_length=32, null=True, blank=True)
-    r_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='受理人工号')
-    re_id = models.CharField('Remedy单号', max_length=255, null=True, blank=True)
+    qradar_id = models.CharField('Qradar单号', max_length=32, null=True, blank=True)
+    receive_user_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL,
+                                        null=True, blank=True, verbose_name='受理人工号')
+    remedy_id = models.CharField('Remedy单号', max_length=255, null=True, blank=True)
     classification = models.IntegerField('攻击类型', null=True, blank=True)
-    s_ip = models.GenericIPAddressField('源IP', max_length=255, null=True, blank=True)
-    d_ip = models.TextField('源目的IP', max_length=255, null=True, blank=True)
-    s_address = models.CharField('源地址', max_length=255, null=True, blank=True)
-    d_address = models.CharField('目的地址', max_length=255, null=True, blank=True)
+    source_ip = models.GenericIPAddressField('源IP', max_length=255, null=True, blank=True)
+    destination_ip = models.TextField('源目的IP', max_length=255, null=True, blank=True)
+    source_address = models.CharField('源地址', max_length=255, null=True, blank=True)
+    destination_address = models.CharField('目的地址', max_length=255, null=True, blank=True)
     stream = models.IntegerField('流数目', null=True, blank=True)
     start_from = models.CharField('开始时间', max_length=255, null=True, blank=True)
     sustain = models.CharField('持续时间', max_length=255, null=True, blank=True)
@@ -35,14 +36,14 @@ class AlarmCheck(Receipt):
 
 
 class EventCheck(Receipt):
-    a_id = models.ForeignKey(AlarmCheck, on_delete=models.SET_NULL, related_name='a_id',
-                             null=True, blank=True, verbose_name='关联告警单号')
-    s_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, related_name="s_id",
-                             null=True, blank=True, verbose_name='建单人')
-    r_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, related_name='r_id',
-                             null=True, blank=True, verbose_name='受理人')
-    transmit = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, related_name="transmit",
-                                 null=True, blank=True, verbose_name='转派人')
+    alarm_check_id = models.ForeignKey(AlarmCheck, on_delete=models.SET_NULL, related_name='event_alarm_check',
+                                       null=True, blank=True, verbose_name='关联告警单号')
+    create_user_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, related_name="event_create_user",
+                                       null=True, blank=True, verbose_name='建单人')
+    receive_user_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, related_name='event_receive_user',
+                                        null=True, blank=True, verbose_name='受理人')
+    transmit_user_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL, related_name="event_transmit_user",
+                                         null=True, blank=True, verbose_name='转派人')
     history = models.CharField('历史记录', max_length=255, null=True, blank=True)
     file = models.FileField('附件', max_length=255, null=True, blank=True)
 
@@ -57,10 +58,10 @@ class EventCheck(Receipt):
 
 # 考核评价表
 class Evaluation(models.Model):
-    id = models.CharField('单号', max_length=255, primary_key=True)
-    time = models.DateTimeField('时间', auto_now_add=True, null=True, blank=True)
-    judge = models.ManyToManyField(HeadUser, related_name="judge", verbose_name='评价人')
-    candidate = models.ManyToManyField(HeadUser, related_name="candidate", verbose_name='被评人')
+    evaluation_id = models.CharField('单号', max_length=255, primary_key=True)
+    create_time = models.DateTimeField('时间', auto_now_add=True, null=True, blank=True)
+    judge_user_id = models.ManyToManyField(HeadUser, related_name="evaluation_judge_user", verbose_name='评价人')
+    candidate_user_id = models.ManyToManyField(HeadUser, related_name="evaluation_candidate_user", verbose_name='被评人')
     score = models.IntegerField('分数', null=True, blank=True)
     reason = models.CharField('说明', max_length=255, null=True, blank=True)
 
@@ -74,13 +75,13 @@ class Evaluation(models.Model):
 
 
 class GuardPlan(models.Model):
-    time = models.DateField('值班日期', primary_key=True, default=now)
-    product_line = models.ForeignKey(HeadUser, related_name='product', on_delete=models.SET_NULL,
-                                     null=True, blank=True, verbose_name='一线值班员')
-    second_line = models.ForeignKey(HeadUser, related_name='second', on_delete=models.SET_NULL,
-                                    null=True, blank=True, verbose_name='二线值班员')
-    third_line = models.ForeignKey(HeadUser, related_name='third', on_delete=models.SET_NULL,
-                                   null=True, blank=True, verbose_name='三线值班员')
+    guard_plan_time = models.DateField('值班日期', primary_key=True, default=now)
+    product_user_id = models.ForeignKey(HeadUser, related_name='guard_product_user', on_delete=models.SET_NULL,
+                                        null=True, blank=True, verbose_name='一线值班员')
+    second_user_id = models.ForeignKey(HeadUser, related_name='guard_second_user', on_delete=models.SET_NULL,
+                                       null=True, blank=True, verbose_name='二线值班员')
+    third_user_id = models.ForeignKey(HeadUser, related_name='guard_third_user', on_delete=models.SET_NULL,
+                                      null=True, blank=True, verbose_name='三线值班员')
     product_judge = models.FloatField('一线值班进度', default=0)
     second_judge = models.FloatField('二线值班进度', default=100)
     third_judge = models.FloatField('三线值班进度', default=100)
