@@ -3,16 +3,10 @@ from django.db import models
 from account.models import HeadUser
 from common.models import Receipt
 from django.utils.timezone import now
+from common.constant import (ALARM_CHECK_SOLUTION, GUARD_LEVEL)
+
 
 # Create your models here.
-
-SOLUTION = (
-    ('1', '继续观察'),
-    ('2', '提交阻断服务请求'),
-    ('3', '其他处理方式'),
-)
-
-
 class AlarmCheck(Receipt):
     qradar_id = models.CharField('Qradar单号', max_length=32, null=True, blank=True)
     receive_user_id = models.ForeignKey(HeadUser, on_delete=models.SET_NULL,
@@ -27,7 +21,7 @@ class AlarmCheck(Receipt):
     start_from = models.CharField('开始时间', max_length=255, null=True, blank=True)
     sustain = models.CharField('持续时间', max_length=255, null=True, blank=True)
     app = models.CharField('攻击应用', max_length=255, null=True, blank=True)
-    solution = models.IntegerField('解决方式', choices=SOLUTION, default='1')
+    solution = models.IntegerField('解决方式', choices=ALARM_CHECK_SOLUTION, default='1')
 
     class Meta:
         db_table = 'alarm_check'
@@ -60,8 +54,10 @@ class EventCheck(Receipt):
 class Evaluation(models.Model):
     evaluation_id = models.CharField('单号', max_length=255, primary_key=True)
     create_time = models.DateTimeField('时间', auto_now_add=True, null=True, blank=True)
-    judge_user_id = models.ManyToManyField(HeadUser, related_name="evaluation_judge_user", verbose_name='评价人')
-    candidate_user_id = models.ManyToManyField(HeadUser, related_name="evaluation_candidate_user", verbose_name='被评人')
+    judge_user_id = models.ForeignKey(HeadUser, related_name="evaluation_judge_user",
+                                      on_delete=models.SET_NULL, null=True, blank=True, verbose_name='评价人')
+    candidate_user_id = models.ForeignKey(HeadUser, related_name="evaluation_candidate_user",
+                                          on_delete=models.SET_NULL, null=True, blank=True, verbose_name='被评人')
     score = models.IntegerField('分数', null=True, blank=True)
     reason = models.CharField('说明', max_length=255, null=True, blank=True)
 
@@ -76,6 +72,7 @@ class Evaluation(models.Model):
 
 class GuardPlan(models.Model):
     guard_plan_time = models.DateField('值班日期', primary_key=True, default=now)
+    guard_level = models.CharField('保障等级', max_length=10, choices=GUARD_LEVEL, default='normal')
     product_user_id = models.ForeignKey(HeadUser, related_name='guard_product_user', on_delete=models.SET_NULL,
                                         null=True, blank=True, verbose_name='一线值班员')
     second_user_id = models.ForeignKey(HeadUser, related_name='guard_second_user', on_delete=models.SET_NULL,

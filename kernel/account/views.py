@@ -6,7 +6,6 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import gettext as _
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from account.forms import UserAuthenticationForm
-from django.contrib.admin.forms import AdminAuthenticationForm
 from functools import update_wrapper
 from django.views.decorators.csrf import csrf_protect
 
@@ -19,7 +18,7 @@ class UserControl:
     login_template = 'login.html'
     REDIRECT_FIELD_NAME = 'index'
 
-    def __init__(self, name='user_control'):
+    def __init__(self, name='account'):
         self.name = name
 
     def has_permission(self, request):
@@ -32,15 +31,15 @@ class UserControl:
     def user_view(self, view, cacheable=False):
         def inner(request, *args, **kwargs):
             if not self.has_permission(request):
-                if request.path == reverse('userauth:logout', current_app=self.name):
-                    index_path = reverse('userauth:index', current_app=self.name)
+                if request.path == reverse('account:logout', current_app=self.name):
+                    index_path = reverse('account:index', current_app=self.name)
                     return HttpResponseRedirect(index_path)
                 # Inner import to prevent django.contrib.admin (app) from
                 # importing django.contrib.auth.models.User (unrelated model).
                 from django.contrib.auth.views import redirect_to_login
                 return redirect_to_login(
                     request.get_full_path(),
-                    reverse('admin:login', current_app=self.name)
+                    reverse('account:login', current_app=self.name)
                 )
             return view(request, *args, **kwargs)
         if not cacheable:
@@ -62,7 +61,7 @@ class UserControl:
 
         if request.method == 'GET' and self.has_permission(request):
             # Already logged-in, redirect to admin index
-            index_path = reverse('common:home', current_app=self.name)
+            index_path = reverse('centre:centre_home', current_app=self.name)
             return HttpResponseRedirect(index_path)
 
         from django.contrib.auth.views import LoginView
@@ -74,8 +73,9 @@ class UserControl:
             app_path=request.get_full_path(),
             username=request.user.get_username(),
         )
-        if (REDIRECT_FIELD_NAME not in request.GET and REDIRECT_FIELD_NAME not in request.POST):
-            context[REDIRECT_FIELD_NAME] = reverse('common:home', current_app=self.name)
+        if (REDIRECT_FIELD_NAME not in request.GET and
+                    REDIRECT_FIELD_NAME not in request.POST):
+            context[REDIRECT_FIELD_NAME] = reverse('centre:centre_home', current_app=self.name)
         context.update(extra_context or {})
 
         defaults = {
@@ -114,6 +114,6 @@ class UserControl:
     # 类内URL路由入口
     @property
     def urls(self):
-        return self.get_urls(), 'userauth', self.name
+        return self.get_urls(), 'account', self.name
 
 user_control = UserControl()

@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.utils.text import get_text_list
 from django.utils.translation import gettext, gettext_lazy as _
 from taggit.managers import TaggableManager
+from common.constant import (INSTITUTION, RECEIPT_RANK, RECEIPT_STATUS, ARTICLE_STATUS)
 
 # Create your models here.
 # 数据库除主键外大多数可空
@@ -73,11 +74,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-
-    INSTITUTION = (
-        ('Head', '总行'),
-        ('Branch', '分行'),
-    )
 
     username_validator = UsernameValidator()
     user_id = models.CharField(
@@ -142,26 +138,42 @@ class Profile(models.Model):
     token = models.IntegerField('令牌', default=0)
     name = models.CharField('姓名', max_length=20, default='')
     photo = models.ImageField('头像')
-    organization = models.CharField('单位', max_length=254, db_index=True, default='')
     tel = models.CharField('电话', max_length=254, default='')
     email = models.EmailField('邮箱', max_length=254, default='')
+
+    def __str__(self):
+        return str(self.name)
 
     class Meta:
         abstract = True
 
 
-RECEIPT_STATUS = (
-    ('new', '新建'),
-    ('process', '处理中'),
-    ('done', '完成'),
-    ('close', '关闭'),
-)
+class OrganizationInfo(models.Model):
+    organization = models.CharField('单位代号', primary_key=True, max_length=255)
+    organization_ch = models.CharField('单位', max_length=50, default='', null=True, blank=True)
+    organization_admin = models.CharField('管理员', max_length=20)
+    create_time = models.DateField('创建时间', auto_now_add=True)
 
-RECEIPT_RANK = (
-    ('1', '一级安全事件'),
-    ('2', '二级安全事件'),
-    ('3', '三级安全事件'),
-)
+    def show_admin(self):
+        return self.organization_admin
+
+    class Meta:
+        abstract = True
+
+
+class DeptInfo(models.Model):
+    organization = models.CharField('单位代号', max_length=255)
+    dept = models.CharField('部门代号', max_length=255)
+    dept_ch = models.CharField('部门', max_length=255)
+    mail = models.EmailField('邮箱', max_length=64, null=True, blank=True)
+    ceo = models.CharField('负责人', max_length=32, null=True, blank=True)
+    create_time = models.DateField('创建时间', auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.dept_ch
 
 
 class Receipt(models.Model):
@@ -190,12 +202,6 @@ class Receipt(models.Model):
 class PublishedManager(models.Manager):
     def get_queryset(self):
         return super(PublishedManager, self).get_queryset().filter(status='published')
-
-
-ARTICLE_STATUS = (
-    ('draft', '草稿'),
-    ('published', '发布'),
-)
 
 
 class Article(models.Model):

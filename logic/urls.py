@@ -16,14 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from account import urls as account_urls
+from common.views import common_index
+from account.views import user_control
 from guard import urls as guard_urls
-from common import urls as common_urls
+from centre import urls as centre_urls
 
 
 urlpatterns = [
+    path('', common_index.urls, name='index'),
     path('admin/', admin.site.urls),
-    path('account/', include(account_urls)),
-    path('guard/', include(guard_urls)),
-    path('common/', include(common_urls))
+    path('account/', user_control.urls, name='account'),
+    path('guard/', include(guard_urls), name='guard'),
+    path('centre/', include(centre_urls), name='centre')
 ]

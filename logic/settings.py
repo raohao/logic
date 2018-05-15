@@ -39,20 +39,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'rest_framework',
     'common',
     'account',
-    'workflow',
+    'xflow',
+    'xmind',
     'guard',
     'centre',
     'assistance',
     'data',
-    'pandora',
     'instrument',
     'custom',
-    'service',
     'log',
-    'api',
     'taggit',
 ]
 
@@ -67,6 +66,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'logic.urls'
+
+LOGIN_URL = '/account/login/'
 
 TEMPLATES = [
     {

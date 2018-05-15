@@ -4,7 +4,7 @@ from django.contrib.auth import (get_user_model)
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 from account.forms import (UserCreationForm, UserChangeForm)
-from account.models import (AdminUser, HeadUser, BranchUser)
+from account.models import (AdminUser, HeadUser, BranchUser, HeadOrganizationInfo, BranchDeptInfo, BranchOrganizationInfo, HeadDeptInfo)
 
 UserModel = get_user_model()
 
@@ -65,3 +65,23 @@ class MyUserBranch(CustomUser):
     class Meta:
         verbose_name = '分行用户'
         verbose_name_plural = verbose_name
+
+
+@admin.register(HeadOrganizationInfo)
+class HeadOrganizationInfoAdmin(admin.ModelAdmin):
+    list_per_page = 15
+
+
+@admin.register(HeadDeptInfo)
+class HeadDeptInfoAdmin(admin.ModelAdmin):
+    list_per_page = 15
+
+
+@admin.register(BranchOrganizationInfo)
+class BranchOrganizationInfoAdmin(admin.ModelAdmin):
+    list_per_page = 15
+
+
+@admin.register(BranchDeptInfo)
+class BranchDeptInfoAdmin(admin.ModelAdmin):
+    list_per_page = 15

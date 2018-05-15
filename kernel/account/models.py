@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from common.models import (User, Profile,  LogEntry)
+from common.models import (User, Profile, OrganizationInfo, DeptInfo, LogEntry)
 from django.utils.translation import gettext_lazy as _
 from common.validators import UnicodeUsernameValidator
-
+from common.constant import (ADMIN_POWERLEVEL, HEAD_POWERLEVEL, BRANCH_POWERLEVEL)
 
 # Create your models here.
-ADMIN_POWERLEVEL = (
-    ('sys_admin', '系统管理员'),
-    ('head_admin', '总行管理员'),
-    ('branch_admin', '分行管理员'),
-)
+
+'''
+管理员用户相关数据库
+'''
 
 
 class AdminUser(User):
@@ -28,6 +27,15 @@ class AdminUser(User):
 
     power_level = models.CharField('权限', max_length=64, choices=ADMIN_POWERLEVEL, default='3')
 
+    @property
+    def user_name(self):
+        user_id = self.user_id
+        user_profile = AdminUserProfile.objects.filter(id=user_id)
+        if user_profile:
+            return user_profile[0].name
+        else:
+            return '用户名不存在！'
+
     class Meta:
         db_table = 'admin_user'
         verbose_name = '管理员用户表'
@@ -42,14 +50,10 @@ class AdminUserProfile(Profile):
         verbose_name = '管理员用户信息表'
         verbose_name_plural = verbose_name
 
-HEAD_POWERLEVEL = (
-    ('team_manager', '团队管理员'),
-    ('guard_judge', '值班审核员'),
-    ('claims_man', '事件调查员'),
-    ('guard_manager', '值班管理员'),
-    ('temporary', '临时操作员'),
-    ('auditor', '审计检查员'),
-)
+
+'''
+总行用户相关数据库
+'''
 
 
 class HeadUser(User):
@@ -61,9 +65,29 @@ class HeadUser(User):
         verbose_name_plural = verbose_name
 
 
+class HeadOrganizationInfo(OrganizationInfo):
+    organization_admin = models.ForeignKey(HeadUser, max_length=20, on_delete=models.SET_NULL,
+                                           null=True, blank=True, verbose_name='管理员')
+
+    @property
+    def show_admin(self):
+        user_id = self.organization_admin
+        admin_info = HeadUserProfile.objects.filter(id=user_id)
+        if admin_info:
+            return admin_info[0].name + admin_info[0].tel + admin_info[0].email
+        else:
+            return '该部门未分配管理员！'
+
+    class Meta:
+        db_table = 'head_organization_info'
+        verbose_name = '总行单位表'
+        verbose_name_plural = verbose_name
+
+
 class HeadUserProfile(Profile):
     user_id = models.OneToOneField(HeadUser, on_delete=models.CASCADE, verbose_name='用户')
-    dept = models.CharField('团队', max_length=255, default='')
+    organization = models.ForeignKey(HeadOrganizationInfo, on_delete=models.CASCADE, verbose_name='单位')
+    dept = models.CharField('团队代号', max_length=255, default='')
     remedy_user_id = models.CharField('remedy账号', max_length=64, default='')
     remedy_password = models.CharField('remedy密码', max_length=64, default='')
 
@@ -73,12 +97,20 @@ class HeadUserProfile(Profile):
         verbose_name_plural = verbose_name
 
 
-BRANCH_POWERLEVEL = (
-    ('branch_assist', '分行协理员'),
-    ('dept_manager', '部门管理员'),
-    ('dept_operator', '部门操作员'),
-    ('auditor', '审计检查员'),
-)
+class HeadDeptInfo(DeptInfo):
+    organization = models.ForeignKey('HeadOrganizationInfo', max_length=255,
+                                     on_delete=models.CASCADE, verbose_name='单位代号')
+
+    class Meta:
+        db_table = 'head_dept_info'
+        unique_together = ('organization', 'dept',)
+        verbose_name = '总行团队表'
+        verbose_name_plural = verbose_name
+
+
+'''
+分行用户相关数据库
+'''
 
 
 class BranchUser(User):
@@ -90,9 +122,29 @@ class BranchUser(User):
         verbose_name_plural = verbose_name
 
 
+class BranchOrganizationInfo(OrganizationInfo):
+    organization_admin = models.ForeignKey(BranchUser, max_length=20, on_delete=models.SET_NULL,
+                                           null=True, blank=True, verbose_name='管理员')
+
+    @property
+    def show_admin(self):
+        user_id = self.organization_admin
+        admin_info = BranchUserProfile.objects.filter(id=user_id)
+        if admin_info:
+            return admin_info[0].name + admin_info[0].tel + admin_info[0].email
+        else:
+            return '该部门未分配管理员！'
+
+    class Meta:
+        db_table = 'branch_organization_info'
+        verbose_name = '分行单位表'
+        verbose_name_plural = verbose_name
+
+
 class BranchUserProfile(Profile):
     user_id = models.OneToOneField(BranchUser, on_delete=models.CASCADE, verbose_name='用户')
-    dept = models.CharField(max_length=255, verbose_name='部门', default='')
+    organization = models.ForeignKey(BranchOrganizationInfo, on_delete=models.CASCADE, verbose_name='单位代号')
+    dept = models.CharField(max_length=255, verbose_name='部门代号', default='')
 
     class Meta:
         db_table = 'branch_user_profile'
@@ -100,19 +152,12 @@ class BranchUserProfile(Profile):
         verbose_name_plural = verbose_name
 
 
-class DeptInfo(models.Model):
-    organization = models.CharField(max_length=255)
-    dept = models.CharField(max_length=255)
-    organization_ch = models.CharField(max_length=255)
-    dept_ch = models.CharField(max_length=255)
-    mail = models.EmailField(max_length=64, null=True, blank=True)
-    ceo = models.CharField(max_length=32, null=True, blank=True)
+class BranchDeptInfo(DeptInfo):
+    organization = models.ForeignKey('BranchOrganizationInfo', max_length=255,
+                                     on_delete=models.CASCADE, verbose_name='单位代号')
 
     class Meta:
-        db_table = 'team_info'
+        db_table = 'branch_dept_info'
         unique_together = ('organization', 'dept',)
-        verbose_name = '部门信息表'
+        verbose_name = '分行部门表'
         verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return str(self.organization_ch + ' ' + self.dept_ch)
