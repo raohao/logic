@@ -24,7 +24,7 @@ django-formtools==2.1
 django-import-export==1.0.0
 django-reversion==2.0.13
 django-taggit==0.22.2
-djangorestframework==3.8.2
+djangorestframework==3.11.2
 enum34==1.1.6
 et-xmlfile==1.0.1
 filetype==1.0.1
